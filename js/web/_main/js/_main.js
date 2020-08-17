@@ -656,6 +656,7 @@ const FoEproxy = (function () {
 		MainParser.CityMapData = Object.assign({}, ...data.responseData.map((x) => ({ [x.id]: x })));;
 
 		ActiveMap = 'main';
+		StrategyPoints.HandleWindowResize();
 	});
 
 	// Besuche anderen Spieler
