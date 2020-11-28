@@ -497,6 +497,10 @@ p {
 	background-image: url('../images/menu/market.png');
 }
 
+#moppelhelper-Btn span {
+	background-image: url('../images/menu/polivation.png');
+}
+
 #greatbuildings-Btn span {
 	background-image: url('../images/menu/greatbuildings.png');
 }
@@ -573,7 +577,6 @@ p {
 	background-image: url('../images/menu/negotation.png');
 }
 
-
 #kits-Btn span {
 	background-image: url('../images/menu/kits.png');
 }
@@ -584,6 +587,10 @@ p {
 
 #notice-Btn span {
 	background-image: url('../images/menu/notices.png');
+}
+
+#bluegalaxy-Btn span {
+	background-image: url('../images/menu/BlueGalaxy.png');
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------
