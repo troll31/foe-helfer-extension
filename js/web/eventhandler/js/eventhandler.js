@@ -62,7 +62,7 @@ let EventHandler = {
 
 			let Date = EventHandler.ParseDate(Event['date']),
 				EventType = Event['type'],
-				InteractionType = Event['interaction_type'];
+				InteractionType = Event['interaction_type'],
 				EntityID = Event['entity_id'];
 
 			let PlayerID = null,
@@ -97,6 +97,8 @@ let EventHandler = {
 
 
 	ParseDate: (DateString) => {
+		let OldLocale = moment.locale();
+		moment.locale('en-US');
 
 		const lang = ExtWorld.substr(0, 2);
 		const matcher = EventHandler.DateShapes(lang);
@@ -155,6 +157,7 @@ let EventHandler = {
 
 					default:
 						refDate = moment().day(capitalize(day));
+						if (refDate.isAfter(MainParser.getCurrentDate())) refDate = refDate.subtract(7 * 86400000); //Date is in the future => subtract 1 week
 				}
 
 				refDate.set({
@@ -162,6 +165,8 @@ let EventHandler = {
 					minute: m,
 					second: 0
 				})
+
+				moment.locale(OldLocale);
 
 				return moment( refDate, moment.defaultFormat).toDate();
 			}
@@ -184,7 +189,7 @@ let EventHandler = {
 			HTML.AddCssFile('eventhandler');
 
 			// Choose Neighbors/Guildmembers/Friends
-			$('#moppelhelper').on('click', '.btn-toggle-players', function () {
+			$('#moppelhelper').on('click', '.toggle-players', function () {
 				EventHandler.CurrentPlayerGroup = $(this).data('value');
 				
 				EventHandler.CalcMoppelHelperBody();
@@ -234,22 +239,32 @@ let EventHandler = {
 			return b['Score'] - a['Score'];
 		});
 
-		h.push('<div class="dark-bg">');
-		if(PlayerDictNeighborsUpdated) h.push('<button class="btn btn-default btn-toggle-players ' + (EventHandler.CurrentPlayerGroup === 'Neighbors' ? 'btn-default-active' : '') + '" data-value="Neighbors">' + i18n('Boxes.MoppelHelper.Neighbors') + '</button>');
-		if(PlayerDictGuildUpdated) h.push('<button class="btn btn-default btn-toggle-players ' + (EventHandler.CurrentPlayerGroup === 'Guild' ? 'btn-default-active' : '') + '" data-value="Guild">' + i18n('Boxes.MoppelHelper.GuildMembers') + '</button>');
-		if(PlayerDictFriendsUpdated) h.push('<button class="btn btn-default btn-toggle-players ' + (EventHandler.CurrentPlayerGroup === 'Friends' ? 'btn-default-active' : '') + '" data-value="Friends">' + i18n('Boxes.MoppelHelper.Friends') + '</button>');
-		h.push('</div>');
+		h.push('<div class="dark-bg"><div class="tabs"><ul class="horizontal">');
+		if(PlayerDictNeighborsUpdated) 
+			h.push('<li class="' + (EventHandler.CurrentPlayerGroup === 'Neighbors' ? 'active' : '') + '"><a class="toggle-players" data-value="Neighbors"><span>' + i18n('Boxes.MoppelHelper.Neighbors') + '</span></a></li>');
+		else
+			h.push('<li class="disabled"><a><span>' + i18n('Boxes.MoppelHelper.Neighbors') + '</span></a></li>');
+		if(PlayerDictGuildUpdated) 
+			h.push('<li class="' + (EventHandler.CurrentPlayerGroup === 'Guild' ? 'active' : '') + '"><a class="toggle-players" data-value="Guild"><span>' + i18n('Boxes.MoppelHelper.GuildMembers') + '</span></a></li>');
+		else
+			h.push('<li class="disabled"><a><span>' + i18n('Boxes.MoppelHelper.GuildMembers') + '</span></a></li>');
+		if(PlayerDictFriendsUpdated) 
+			h.push('<li class="' + (EventHandler.CurrentPlayerGroup === 'Friends' ? 'active' : '') + '"><a class="toggle-players" data-value="Friends"><span>' + i18n('Boxes.MoppelHelper.Friends') + '</span></a></li>');
+		else
+			h.push('<li class="disabled"><a><span>' + i18n('Boxes.MoppelHelper.Friends') + '</span></a></li>');
+		h.push('</ul></div></div>');
 
-		h.push('<table class="foe-table"');
-
-		h.push('<thead>');
-		h.push('<th>' + i18n('Boxes.MoppelHelper.Rank') + '</th>');
-		h.push('<th>' + i18n('Boxes.MoppelHelper.Name') + '</th>');
-		h.push('<th>' + i18n('Boxes.MoppelHelper.Points') + '</th>');
+		h.push('<table class="foe-table sortable-table">');
+		h.push('<tbody class="moppelhelper">');
+		h.push('<tr class="sorter-header">');
+		h.push('<th class="is-number ascending" data-type="moppelhelper">' + i18n('Boxes.MoppelHelper.Rank') + '</th>');
+		h.push('<th></th>');
+		h.push('<th data-type="moppelhelper">' + i18n('Boxes.MoppelHelper.Name') + '</th>');
+		h.push('<th class="is-number" data-type="moppelhelper">' + i18n('Boxes.MoppelHelper.Points') + '</th>');
 		for (let i = 0; i < MaxVisitCount; i++) {
-			h.push('<th>' + i18n('Boxes.MoppelHelper.Visit') + (i+1) + '</th>');
+			h.push('<th class="is-date" data-type="moppelhelper">' + i18n('Boxes.MoppelHelper.Visit') + (i+1) + '</th>');
 		}
-		h.push('</thead>');
+		h.push('</tr>');
 
 		for (let i = 0; i < PlayerList.length; i++) {
 			let Player = PlayerList[i];
@@ -264,24 +279,50 @@ let EventHandler = {
 			});
 
 			h.push('<tr>');
-			h.push('<td>#' + (i + 1) + '</td>');
-			h.push('<td>' + Player['PlayerName'] + '</td>');
-			h.push('<td>' + HTML.Format(Player['Score']) + '</td>');
+			h.push('<td class="is-number" data-number="' + (i+1) + '">#' + (i+1) + '</td>');
+			h.push(`<td><img style="max-width: 22px" src="${MainParser.InnoCDN + 'assets/shared/avatars/' + MainParser.PlayerPortraits[ Player['Avatar'] ]}.jpg" alt="${Player['PlayerName']}"></td>`);
+			h.push('<td data-text="' + Player['PlayerName'] + '">' + Player['PlayerName'] + '</td>');
+			h.push('<td class="is-number" data-number="' + Player['Score'] + '">' + HTML.Format(Player['Score']) + '</td>');
 			for (let j = 0; j < MaxVisitCount; j++) {
 				if (j < Visits.length) {
-					h.push('<td>' + moment(Visits[j]['date']).fromNow() + '</td>');
+					let Days = (MainParser.getCurrentDateTime() - Visits[j]['date'].getTime()) / 86400000; //24*3600*1000
+					let StrongClass = EventHandler.GetMoppelDateStrongClass(Days);
+					let FormatedDays = HTML.i18nReplacer(i18n('Boxes.MoppelHelper.Days'), { 'days': Math.round(Days) });
+
+					h.push('<td style="white-space:nowrap" class="is-date" data-date="' + Visits[j]['date'].getTime() + '"><strong class="' + StrongClass + '">' + FormatedDays + '</strong></td>');
 				}
 				else {
-					h.push('<td></td>');
+					h.push('<td class="is-date" data-date="0"><strong class="error">' + i18n('Boxes.MoppelHelper.Never') + '</strong></td>');
                 }
             }
 			h.push('</tr>');
         }
 
+		h.push('</tbody>');
 		h.push('</table>');	
 
-		$('#moppelhelperBody').html(h.join(''));
+		$('#moppelhelperBody').html(h.join('')).promise().done(function () {
+			$('.sortable-table').tableSorter();
+		});
 	},
+
+
+	/**
+	* Returns strong class for formating mopppel date
+	*
+	* @param Days
+	*/
+	GetMoppelDateStrongClass: (Days) => {
+		if (Days < 3) {
+			return 'success';
+		}
+		else if (Days < 7) {
+			return '';
+		}
+		else {
+			return 'error';
+		}
+    },
 
 
 	/**
