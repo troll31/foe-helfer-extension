@@ -1,5 +1,38 @@
 ## Changelog - Extension
 
+
+##### 2.5.3.2
+
+**BugFix**
+- FP-Collector:
+    - Ein kleiner Bug verhinderte das Anzeigen des Menübuttons
+
+---
+
+##### 2.5.3.1
+
+**Neu**
+
+- FP-Collector:
+    - Sammelt tagesweise und nach Art sortiert alle FPs ein die Du im kompletten Spiel sammelst um so eine Gesamtübersicht deiner "nebenbei" FPs zu erstellen
+
+**Update**
+
+- Menü:
+    - [#1661](https://github.com/dsiekiera/foe-helfer-extension/issues/1661) [#1657](https://github.com/dsiekiera/foe-helfer-extension/issues/1657) wegen dem neuen dynamischen Menü weicht das Menü des Helfers an den unteren Rand aus
+
+- Moppelhelfer:
+    - Über den Tabbelkopf können die Werte sortiert werden
+    - Filter für verschiedene Ereignisse [#1652](https://github.com/dsiekiera/foe-helfer-extension/issues/1652)
+    - Farbige Werte für besseres unterscheiden
+
+**BugFix**
+
+- Eventhelfer:
+    - [#1655](https://github.com/dsiekiera/foe-helfer-extension/issues/1655) Fehlerhafte Erkennung des Tagespreises Football Event 2021
+
+---
+
 ##### 2.5.3.0
 
 **Neu**
@@ -611,7 +644,7 @@
 - Armeeübersicht:
     - [#434](https://github.com/dsiekiera/foe-helfer-extension/issues/434) [#467](https://github.com/dsiekiera/foe-helfer-extension/issues/467) Neue Armee Boni integriert
     
-- Verhandlungsassitent:    
+- Verhandlungsassistent:    
     - [#519](https://github.com/dsiekiera/foe-helfer-extension/issues/519) Nummerntasten Anzeige und Benutzung (erste Zahl Person, zweite Taste Gut + Leertaste abschicken)
 
 - Menü:
@@ -624,7 +657,7 @@
 - Menü:
     - [#411](https://github.com/dsiekiera/foe-helfer-extension/issues/411) [#413](https://github.com/dsiekiera/foe-helfer-extension/issues/413) doppelte Einträge gefixt
 
-- Verhandlungsassitent:
+- Verhandlungsassistent:
     - [#421](https://github.com/dsiekiera/foe-helfer-extension/issues/421) Vorrats-Tooltip beim Verhandlungsassistent blieb sichtbar
     - [#459](https://github.com/dsiekiera/foe-helfer-extension/issues/459) zeigte ausgeschlossene Güter
     - [#491](https://github.com/dsiekiera/foe-helfer-extension/issues/491) Fehler beim Verhandlungsassistent
