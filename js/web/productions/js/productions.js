@@ -336,6 +336,10 @@ let Productions = {
 			if (d['state']['current_product']['clan_power']) {
 				CurrentResources['clan_power'] = d['state']['current_product']['clan_power']; // z.B. Ruhmeshalle
 			}
+
+			if (d['state']['current_product']['name'] === 'penal_unit') {
+				CurrentResources['units'] = d['state']['current_product']['amount'];
+			}
 			
 			if (d['state']['current_product']['units']) {
 				CurrentResources['units'] = d['state']['current_product']['units'];
@@ -513,11 +517,12 @@ let Productions = {
 		HTML.AddCssFile('productions');
 
 		HTML.Box({
-			'id': 'Productions',
-			'title': i18n('Boxes.Productions.Title'),
-			'auto_close': true,
-			'dragdrop': true,
-			'minimize': true
+			id: 'Productions',
+			title: i18n('Boxes.Productions.Title'),
+			auto_close: true,
+			dragdrop: true,
+			minimize: true,
+			resize: true
 		});
 
 		Productions.ActiveTab = 1;
@@ -612,6 +617,12 @@ let Productions = {
 
 						if (size !== 0) {
 							if (type === 'strategy_points') {
+								EfficiencyString = HTML.Format(MainParser.round(efficiency * 100) / 100);
+							}
+							else if (type === 'premium') {
+								EfficiencyString = HTML.Format(MainParser.round(efficiency * 1000) / 1000);
+							}
+							else if (type === 'units') {
 								EfficiencyString = HTML.Format(MainParser.round(efficiency * 100) / 100);
 							}
 							else {
