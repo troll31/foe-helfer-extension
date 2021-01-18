@@ -386,7 +386,8 @@ let Parts = {
 				
         // Info-Block
         h.push('<div class="dark-bg">');
-        h.push('<table style="width: 1&"><tr><td style="width: 65%" class="text-center">');
+        h.push('<div class="flex" style="justify-content: space-evenly">');
+        h.push('<div class="text-center">');
 		h.push('<h1 class="lg-info">' + MainParser.CityEntities[cityentity_id]['name'] + '</h1>');
 		if (PlayerName) h.push('<strong>' + PlayerName + '</strong> - ');
 		if (Parts.IsPreviousLevel) {
@@ -402,11 +403,9 @@ let Parts = {
 			}
 			h.push('</p>');
 		}
+        h.push('</div>');
 		
-
-        h.push('</td>');
-        h.push('<td class="text-right">');
-        h.push('<span class="btn-group">');
+        h.push('<span class="btn-group" style="align-items: center;">');
 
 		// different arc bonus-buttons
 		let investmentSteps = [80,85,90];
@@ -417,8 +416,7 @@ let Parts = {
 		});
 
         h.push('</span>');
-        h.push('</td>');
-        h.push('</tr></table>');
+        h.push('</div>');
 
         h.push('<table style="margin-bottom: 3px; width: 100%">');
 
@@ -1078,12 +1076,12 @@ let Parts = {
 
 		for (let i = MinLevel; i < MaxLevel; i++) {
 			h.push('<tr>');
-			h.push('<td style="white-space:nowrap">' + i + ' → ' + (i + 1) + '</td>');
-			h.push('<td class="bright">' + HTML.Format(Places[i][0]) + '</td>');
-			h.push('<td class="bright">' + HTML.Format(Places[i][1]) + '</td>');
-			h.push('<td class="bright">' + HTML.Format(Places[i][2]) + '</td>');
-			h.push('<td class="bright">' + HTML.Format(Places[i][3]) + '</td>');
-			h.push('<td class="bright">' + HTML.Format(Places[i][4]) + '</td>');
+			h.push('<td class="bright" style="white-space:nowrap">' + i + ' → ' + (i + 1) + '</td>');
+			h.push('<td>' + HTML.Format(Places[i][0]) + '</td>');
+			h.push('<td class="text-light">' + HTML.Format(Places[i][1]) + '</td>');
+			h.push('<td>' + HTML.Format(Places[i][2]) + '</td>');
+			h.push('<td class="text-light">' + HTML.Format(Places[i][3]) + '</td>');
+			h.push('<td>' + HTML.Format(Places[i][4]) + '</td>');
 			if (HasDoubleCollection) {
 				h.push('<td class="success"><strong>' + HTML.Format(EigenBruttos[i]) + '</strong></td>');
 				h.push('<td>' + HTML.Format(MainParser.round(DoubleCollections[i])) + '</td>');
