@@ -24,7 +24,7 @@
 	height: 22px !important;
 }
 
-#GuildPlayersHeader small {
+#GildPlayersHeader small {
 	font-weight: lighter;
 }
 
@@ -81,9 +81,10 @@
 }
 
 #LiveGildFighting {
-	top: 30%;
-	right: 15%;
-	width: 900px;
+	left: calc(50vw - 325px);
+	top: calc(50vw - 250px);
+	width: 750px;
+	height: 500px;
 }
 
 #LiveGildFightingBody {
@@ -102,11 +103,13 @@
 }
 
 #LiveGildFightingBody .tabs ul li.gbgnextup a span {
-	background: transparent url('../../stats/images/tabs.png') -237px 0 no-repeat;
+	background: transparent url('../../x_img/hourglass.png') no-repeat;
+	background-size: contain;
+	top: 8px;
+    position: relative;
 }
 
 #LiveGildFightingBody #nextup {
-	font-size: 90%;
 	overflow: hidden;
 	overflow-y: auto;
 	flex-grow: 2;
@@ -124,6 +127,11 @@
 
 #LiveGildFightingBody #progress tr td:nth-child(2) {
 	width: 50%;
+}
+
+#LiveGildFightingBody table.foe-table tr.highlight-row {
+	background-color: rgba(40, 18, 7, 0.8);
+	color: var(--text-bright);
 }
 
 #LiveGildFightingBody tr td {
@@ -158,8 +166,10 @@
 /*************************************************************************************************************/
 
 #ProvinceMap {
-	width: 790px;
-	height: 620px;
+	width: 560px;
+	height: 438px;
+	left: calc(50vw - 280px);
+	top: calc(50vw - 219px);
 }
 
 #ProvinceMap #province-map {
