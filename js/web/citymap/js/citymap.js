@@ -274,7 +274,7 @@ let CityMap = {
 		    if(!CityMap.OccupiedArea2[d.type]) CityMap.OccupiedArea2[d.type] = 0;
 			CityMap.OccupiedArea2[d.type] += (AreaNeeded);
 
-			if (d.type !== 'street') {
+			if (d.type !== 'street' && CityMap.CityData[b]['state']['__class__'] !== 'UnconnectedState') {
 				let RequiredStreet = d['requirements']['street_connection_level'] | 0
 
 				if (RequiredStreet) {
@@ -399,8 +399,12 @@ let CityMap = {
 	/**
 	 * Show the submit box
 	 */
-	showSumbitBox: ()=> {
-		if( $('#city-map-submit').length < 1 && $('#CityMapSubmit').length < 1)
+	showSumbitBox: () => {
+		if ($('#CityMapSubmit').length > 0) {
+			$('#CityMapSubmit').remove();
+		}
+
+		if ($('#CityMapSubmit').length < 1)
 		{
 			HTML.Box({
 				'id': 'CityMapSubmit',
@@ -417,9 +421,6 @@ let CityMap = {
 			desc += '<p class="text-center" id="msg-line"><button class="btn-default" onclick="CityMap.SubmitData()">' + i18n('Boxes.CityMap.Desc2') + '</button></p>';
 
 			$('#CityMapSubmitBody').html(desc);
-		}
-		else {
-			$('#CityMapSubmit').remove();
 		}
 	},
 	/**
