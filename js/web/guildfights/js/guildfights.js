@@ -5,8 +5,8 @@
  * Projekt:                   foe-chrome
  *
  * erstellt von:              Daniel Siekiera <daniel.siekiera@gmail.com>
- * erstellt am:	              18.02.21, 10:34 Uhr
- * zuletzt bearbeitet:       18.02.21, 10:31 Uhr
+ * erstellt am:	              11.03.21, 16:47 Uhr
+ * zuletzt bearbeitet:       11.03.21, 16:30 Uhr
  *
  * Copyright © 2021
  *
@@ -340,8 +340,8 @@ let GildFights = {
 		t.push('<th>&nbsp;</th>');
 		t.push('<th>&nbsp;</th>');
 		t.push('<th>' + i18n('Boxes.Gildfights.Player') + '</th>');
-		t.push('<th class="text-center"><span class="negotiation" title="' + i18n('Boxes.Gildfights.Negotiations') + '"></span> <strong class="text-warning">(' + HTML.Format(tN) + ')</strong></th>');
-		t.push('<th class="text-center"><span class="fight" title="' + i18n('Boxes.Gildfights.Fights') + '"></span> <strong class="text-warning">(' + HTML.Format(tF) + ')</strong></th>');
+		t.push('<th class="text-center"><span class="negotiation" title="' + HTML.i18nTooltip(i18n('Boxes.Gildfights.Negotiations')) + '"></span> <strong class="text-warning">(' + HTML.Format(tN) + ')</strong></th>');
+		t.push('<th class="text-center"><span class="fight" title="' + HTML.i18nTooltip(i18n('Boxes.Gildfights.Fights')) + '"></span> <strong class="text-warning">(' + HTML.Format(tF) + ')</strong></th>');
 		t.push('<th class="text-center">' + i18n('Boxes.Gildfights.Total') + ' <strong class="text-warning">(' + HTML.Format(tNF) + ')</strong></th>');
 
 		t.push('</tr>');
@@ -577,7 +577,7 @@ let GildFights = {
 		h.push('<div class="gbg-tabs tabs">');
 		h.push( GildFights.GetTabs() );
 		h.push( GildFights.GetTabContent() );
-		h.push('<button class="btn-default">MAP</button>');
+		h.push('<button class="btn-default" onclick="ProvinceMap.buildMap()">MAP</button>');
 		h.push('</div>');
 
 		$('#LiveGildFighting').find('#LiveGildFightingBody').html( h.join('') ).promise().done(function(){
