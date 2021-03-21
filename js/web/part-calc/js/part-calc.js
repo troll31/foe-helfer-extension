@@ -5,10 +5,10 @@
  * Projekt:                   foe-chrome
  *
  * erstellt von:              Daniel Siekiera <daniel.siekiera@gmail.com>
- * erstellt am:	              22.12.19, 14:31 Uhr
- * zuletzt bearbeitet:       22.12.19, 14:31 Uhr
+ * erstellt am:	              19.03.21, 10:20 Uhr
+ * zuletzt bearbeitet:       19.03.21, 10:17 Uhr
  *
- * Copyright © 2019
+ * Copyright © 2021
  *
  * **************************************************************************************
  */
@@ -646,7 +646,8 @@ let Parts = {
 	BuildBackgroundBody: () => {
 		let h = [],
 			PlayerName,
-			BuildingName = localStorage.getItem("OwnPartBuildingName" + Parts.CityMapEntity['cityentity_id']);
+			BuildingName = localStorage.getItem("OwnPartBuildingName" + Parts.CityMapEntity['cityentity_id']),
+			$OwnPartBox = $('#OwnPartBox');
 
 		if (Parts.CityMapEntity['player_id'] === ExtPlayerID) { //Eigenes LG
 			let CopyName = localStorage.getItem(ExtPlayerID + '_PlayerCopyName');
@@ -713,13 +714,13 @@ let Parts = {
 			'</div>');
 
 		// ---------------------------------------------------------------------------------------------
-		$('#OwnPartBox').off("click",'.button-own');
-		$('#OwnPartBox').on('click', '.button-own', function(){
+
+		$OwnPartBox.off('click','.button-own').on('click', '.button-own', function(){
 			let copyParts = Parts.CopyFunction($(this), 'copy');
 			helper.str.copyToClipboard(copyParts);
 		});
-		$('#OwnPartBox').off("click",'.button-save-own');
-		$('#OwnPartBox').on('click', '.button-save-own', function(){
+
+		$OwnPartBox.off('click','.button-save-own').on('click', '.button-save-own', function(){
 			Parts.CopyFunction($(this), 'save');
 		});
 
@@ -735,23 +736,24 @@ let Parts = {
 		let div = $('<div />').addClass('OwnPartBoxBackground'),
 			a = $('<div />').addClass('outerArrow').append( $('<span />').addClass('arrow game-cursor') ).append( $('<div />').addClass('OwnPartBoxBackgroundBody window-box').append(h.join('')) );
 
-		$('#OwnPartBox').append( div.append(a) );
-
-		$('#OwnPartBox').append($('<div />').addClass('black-bg').hide());
+		$OwnPartBox
+			.append( div.append(a) )
+			.append($('<div />')
+				.addClass('black-bg').hide());
 
 		Parts.RefreshCopyString();
 
 		// der "Toogle"-Pfeil wurde geklickt,
 		// lasst die Spiele beginnen
 		$('.arrow').bind('click', function(){
-			if( $('#OwnPartBox').hasClass('show') ){
+			if( $OwnPartBox.hasClass('show') ){
 				Parts.BackGroundBoxAnimation(false);
 			} else {
 				Parts.BackGroundBoxAnimation(true);
 			}
 		});
 
-		$('#OwnPartBox').on('click', '.form-check-input', function(){
+		$OwnPartBox.on('click', '.form-check-input', function(){
 			let PlaceName = $(this).data('place');
 
 			if (PlaceName) {
@@ -814,7 +816,7 @@ let Parts = {
 			Parts.RefreshCopyString();
 		});
 
-		$('#OwnPartBox').on('blur', '#player-name', function () {
+		$OwnPartBox.on('blur', '#player-name', function () {
 			let PlayerName = $('#player-name').val();
 
 			localStorage.setItem(ExtPlayerID + '_PlayerCopyName', PlayerName);
@@ -822,7 +824,7 @@ let Parts = {
 			Parts.RefreshCopyString();
 		});
 
-		$('#OwnPartBox').on('blur', '#build-name', function () {
+		$OwnPartBox.on('blur', '#build-name', function () {
 			let BuildingName = $('#build-name').val();
 
 			localStorage.setItem("OwnPartBuildingName" + Parts.CityMapEntity['cityentity_id'], BuildingName);
@@ -1095,7 +1097,7 @@ let Parts = {
 				EigenBruttos[i] = Parts.RemainingOwnPart;
             }
 			
-			let FPGreatBuilding = GreatBuildings.GreatBuildingsData.find(obj => (obj.ID === EntityID));
+			let FPGreatBuilding = GreatBuildings.GreatBuildingsData.find(obj => (obj.ID === EntityID && obj.FPProductions));
 			if (FPGreatBuilding && EntityID !== 'X_FutureEra_Landmark1') { //FP produzierende LGs ohne Arche
 				HasDoubleCollection = true;
 				if (i < FPGreatBuilding.FPProductions.length) {
