@@ -50,9 +50,9 @@ let _menu = {
 		'fpCollector',
 		'gildfight',
 		'investment',
-		'alerts'
+		'alerts',
+		'guildmemberstat'
 		// 'unitsGex',
-		// 'guildmemberstats'
 	],
 
 	HiddenItems: [],
@@ -226,6 +226,33 @@ let _menu = {
 		}
 
 		_menu.Items = _menu.Items.filter(e => e);
+	},
+
+
+	/**
+	 * Toggle a menu buttons' visibility, update HiddenItems and corresponding settings button
+	 * 
+	 * @param name 
+	 */
+	ToggleItemVisibility: (name) => {
+
+		if(_menu.HiddenItems.includes(name))
+		{
+			$('#' + name + '-Btn').removeClass('btn-hidden');
+			$('#setting-' + name + '-Btn').removeClass('hud-btn-red');
+
+			_menu.HiddenItems = _menu.HiddenItems.filter(e => {
+				return e !== name;
+			});
+		}
+		else {
+			$('#' + name + '-Btn').addClass('btn-hidden');
+			$('#setting-' + name + '-Btn').addClass('hud-btn-red');
+
+			_menu.HiddenItems.push(name);
+		}
+		
+		localStorage.setItem('MenuHiddenItems', JSON.stringify(_menu.HiddenItems));
 	},
 
 
