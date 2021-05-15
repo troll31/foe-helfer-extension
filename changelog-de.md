@@ -1,5 +1,20 @@
 ## Changelog - Extension
 
+##### 2.5.7.2
+
+**Neu**
+
+- Gildenmitglieder Statistik:
+	- [#1949](https://github.com/mainIine/foe-helfer-extension/issues/1949) Exportfunktion für jeden Tab der Statistik
+	- Detailansicht aller Gildengebäude (erneuter Besuch aller Gildenmitglieder für die korrekte Darstellung empfohlen.) 
+
+**BugFix**
+
+- Gildenmitglieder Statistik:
+	- Die Berechnung der Gildenmacht war in bestimmten Fällen ungenau
+
+---
+
 ##### 2.5.7.1
 
 **BugFix**
