@@ -297,7 +297,7 @@ let Infoboard = {
 
             if (Infoboard.PlayInfoSound && status && filterStatus)
             {
-                Infoboard.SoundFile.play();
+                if (Settings.GetSetting('EnableSound')) Infoboard.SoundFile.play();
             }
         }
     },
@@ -446,7 +446,8 @@ let Info = {
                     header = '<div><strong class="bright">' + chat['escaped_title'] + '</strong></div>';
                 }
                 else {
-                    header = '<div><strong class="bright">' + chat['escaped_title'] + '</strong> - <em>' + d['sender']['name'] + '</em></div>';
+                    let link = 'https://foe.scoredb.io/' + ExtWorld + '/player/' + d['sender']['player_id'];
+                    header = '<div><strong class="bright">' + chat['escaped_title'] + '</strong> - <em><a href="' + link + '" target="_blank">' + d['sender']['name'] + '</a></em></div>';
                 }
             }
             else {

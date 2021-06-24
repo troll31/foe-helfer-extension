@@ -51,8 +51,12 @@ let GexStat = {
 	CurrentGexWeek: undefined,
 	CurrentStatGroup: 'Ranking',
 	ResponseBlockTime: 0,
+	Chart: undefined,
 	Settings: {
 		deleteOlderThan: 20,
+		showAxisLabel: true,
+		chartSeries: ['points', 'encounters', 'member', 'participants', 'rank'],
+		showRoundLimit: 10
 	},
 
 	/**
@@ -105,6 +109,7 @@ let GexStat = {
 
 			GexStat.CurrentStatGroup = $(this).data('value');
 
+			$('#gexsContentWrapper').attr('class', 'default');
 			$("#gexsTabs").find("li").removeClass("active");
 			$(this).parent().addClass("active");
 			$("#gexs_weekswitch").attr("data-group", GexStat.CurrentStatGroup);
@@ -138,16 +143,21 @@ let GexStat = {
 				let participants = data.participants;
 				let rankingdata = {};
 
+				let rankdata = ranking.reduce(function (res, obj) {
+					res[obj.participantId] = {};
+					res[obj.participantId].rank = obj.rank;
+					res[obj.participantId].points = obj.points;
+					return res;
+				}, {});
+
+				let currentGuildRank = rankdata[ExtGuildID] && rankdata[ExtGuildID].rank ? rankdata[ExtGuildID].rank : 0;
+
 				participants.forEach(guild => {
 
 					if (rankingdata[guild.id] === undefined)
 					{
 						rankingdata[guild.id] = {};
 					}
-
-					let rankdata = ranking.filter(function (rank) {
-						return rank.participantId === guild.id;
-					});
 
 					rankingdata[guild.id].guildId = guild.id;
 					rankingdata[guild.id].worldId = guild.worldId;
@@ -158,8 +168,8 @@ let GexStat = {
 					rankingdata[guild.id].memberCount = guild.memberCount;
 					rankingdata[guild.id].trophies = guild.trophies;
 					rankingdata[guild.id].worldName = guild.worldName
-					rankingdata[guild.id].rank = rankdata[0].rank;
-					rankingdata[guild.id].points = rankdata[0].points;
+					rankingdata[guild.id].rank = rankdata[guild.id].rank;
+					rankingdata[guild.id].points = rankdata[guild.id].points;
 
 				});
 
@@ -167,6 +177,7 @@ let GexStat = {
 					gexweek: gexid,
 					participants: Object.values(rankingdata),
 					currentGuildID: ExtGuildID,
+					currentGuildRank: currentGuildRank,
 					lastupdate: MainParser.getCurrentDate()
 				});
 
@@ -184,6 +195,7 @@ let GexStat = {
 				let sumExpeditionPoints = 0;
 				let sumEncounters = 0;
 				let countMember = data.length;
+				let activeMembers = 0;
 
 				for (let k in data)
 				{
@@ -206,6 +218,7 @@ let GexStat = {
 
 						sumExpeditionPoints += data[k].expeditionPoints ? data[k].expeditionPoints : 0;
 						sumEncounters += data[k].solvedEncounters;
+						activeMembers = partdata[k].expeditionPoints !== 0 ? activeMembers + 1 : activeMembers;
 					}
 				}
 
@@ -215,6 +228,7 @@ let GexStat = {
 					expeditionPoints: sumExpeditionPoints,
 					solvedEncounters: sumEncounters,
 					countMember: countMember,
+					activeMembers: activeMembers,
 					currentGuildID: ExtGuildID,
 					lastupdate: MainParser.getCurrentDate()
 				});
@@ -332,7 +346,7 @@ let GexStat = {
 		{
 			GexStat.hidePreloader("#GexStat");
 			h.push(`<div class="no-data"><p>${i18n('Boxes.GexStat.ParticipationNoData')}</p></div>`);
-			$('#gexsContentWrapper').html(h.join(''))
+			$('#gexsContentWrapper').html(h.join(''));
 			return;
 		}
 
@@ -349,7 +363,7 @@ let GexStat = {
 			`</div>`);
 
 		h.push(`<table id="gexsParticipationTable" class="foe-table">` +
-			`<thead><tr class="sorter-header">` +
+			`<thead class="sticky"><tr class="sorter-header">` +
 			`<th class="text-center is-number" data-type="gexs-group">#</th>` +
 			`<th class="text-center is-number" data-type="gexs-group"><span class="level"></span></th>` +
 			`<th class="case-sensitive" data-type="gexs-group">${i18n('Boxes.GexStat.Player')}</th>` +
@@ -388,6 +402,196 @@ let GexStat = {
 	},
 
 
+	ShowCourse: async () => {
+
+		GexStat.showPreloader("#GexStat");
+		GexStat.InitSettings();
+		GexStat.CurrentStatGroup = 'Course';
+		$('#gexs_weekswitch').slideUp();
+		$('#gexsContentWrapper').addClass('chart');
+
+		let CourseData = {
+			allMemberData: [],
+			pointsData: [],
+			rankData: [],
+			encounterData: [],
+			weeks: [],
+			activeMemberData: [],
+			pointSum: 0
+		};
+
+		let GexParticipation = await GexStat.db.participation.reverse().limit(GexStat.Settings.showRoundLimit).toArray();
+		let GexRanking = await GexStat.db.ranking.reverse().limit(GexStat.Settings.showRoundLimit).toArray();
+
+		if ((!GexParticipation || !GexParticipation.length) && (!GexRanking || !GexRanking.length))
+		{
+			GexStat.hidePreloader("#GexStat");
+			$('#gexsContentWrapper').html(`<div class="no-data"><p>${i18n('Boxes.GexStat.ParticipationNoData')}</p></div>`);
+			return;
+		}
+
+		let data = [...[GexRanking, GexParticipation].reduce((m, a) => (a.forEach(o => m.has(o.gexweek) && Object.assign(m.get(o.gexweek), o) || m.set(o.gexweek, o)), m), new Map).values()];
+		data.sort(function (a, b) { return a.gexweek - b.gexweek });
+
+		for (let x = 0; x < data.length; x++)
+		{
+			const gexweek = data[x];
+			let hasParticipation = true;
+			let hasParticipants = true;
+
+			CourseData.weeks.push(moment(gexweek.gexweek * 1000).format(i18n('Date')));
+			CourseData.pointSum += gexweek.expeditionPoints !== undefined ? gexweek.expeditionPoints : 0;
+			CourseData.pointsData.push(gexweek.expeditionPoints !== undefined ? gexweek.expeditionPoints : null);
+			CourseData.encounterData.push(gexweek.solvedEncounters !== undefined ? gexweek.solvedEncounters : null);
+			CourseData.allMemberData.push(gexweek.countMember !== undefined ? gexweek.countMember : null);
+
+			if (!gexweek.participation && !gexweek.activeMembers) { CourseData.activeMemberData.push(null); hasParticipation = false; }
+			if (!gexweek.participants && !gexweek.currentGuildRank) { CourseData.rankData.push(null); hasParticipants = false; }
+
+			if (!gexweek.activeMembers && hasParticipation)
+			{
+				let count = gexweek.participation.filter(function (solved) {
+					return solved.solvedEncounters > 0;
+				}).length;
+
+				CourseData.activeMemberData.push(count);
+				// Update DB
+				await GexStat.db.participation.update(gexweek.gexweek, { activeMembers: count });
+			}
+			else if (hasParticipation)
+			{
+				CourseData.activeMemberData.push(gexweek.activeMembers);
+			}
+
+			if (!gexweek.currentGuildRank && hasParticipants)
+			{
+				let rankdata = gexweek.participants.filter(function (d) {
+					return d.guildId === ExtGuildID;
+				});
+
+				CourseData.rankData.push(rankdata[0].rank);
+				//Update DB
+				await GexStat.db.ranking.update(gexweek.gexweek, { currentGuildRank: rankdata[0].rank });
+			}
+			else if (hasParticipants)
+			{
+				CourseData.rankData.push(gexweek.currentGuildRank);
+			}
+
+		}
+		//console.log(CourseData);
+
+		// to prevent double include of Highcharts get it from Stats module 
+		await Stats.loadHighcharts();
+
+		const series = await GexStat.GetChartSeries(CourseData);
+
+		GexStat.Chart = new Highcharts.chart('gexsContentWrapper', {
+
+			title: {
+				text: i18n('Boxes.GexStat.Gex') + ' ' + i18n('Boxes.GexStat.Rounds')
+			},
+			subtitle: {
+				text: CourseData.weeks[0] + ' - ' + CourseData.weeks[CourseData.weeks.length - 1] +
+					' (' + CourseData.weeks.length + ' ' + i18n('Boxes.GexStat.Rounds') + ')'
+			},
+			yAxis: [{
+				allowDecimals: false,
+				labels: {
+					enabled: (GexStat.Settings.showAxisLabel && series.yaxis.includes(0)),
+				},
+				title: {
+					enabled: (GexStat.Settings.showAxisLabel && series.yaxis.includes(0)),
+					text: i18n('Boxes.GexStat.Points'),
+				}
+			}, {
+				allowDecimals: false,
+				title: {
+					enabled: (GexStat.Settings.showAxisLabel && series.yaxis.includes(1)),
+					text: i18n('Boxes.GexStat.Member') + ' / ' + i18n('Boxes.GexStat.Participant'),
+				},
+				labels: {
+					enabled: (GexStat.Settings.showAxisLabel && series.yaxis.includes(1)),
+				},
+				opposite: true
+			},
+			{
+				allowDecimals: false,
+				labels: {
+					enabled: (GexStat.Settings.showAxisLabel && series.yaxis.includes(2)),
+				},
+				title: {
+					enabled: (GexStat.Settings.showAxisLabel && series.yaxis.includes(2)),
+					text: i18n('Boxes.GexStat.Encounters'),
+				},
+			},
+			{
+				allowDecimals: false,
+				labels: {
+					enabled: false,
+				},
+				title: {
+					enabled: false
+				},
+				reversed: true
+			}],
+			xAxis: {
+				categories: CourseData.weeks,
+				crosshair: true,
+			},
+			legend: {
+				layout: 'vertical',
+				align: 'right',
+				verticalAlign: 'middle'
+			},
+			plotOptions: {
+				column: {
+					grouping: false,
+					shadow: false,
+					borderWidth: 0
+				},
+				series: {
+					label: {
+						connectorAllowed: false
+					}
+				}
+			},
+			series: series.data,
+			tooltip: {
+				shared: true
+			},
+			exporting: {
+				enabled: false
+			},
+			responsive: {
+				rules: [{
+					condition: {
+						maxWidth: 800
+					},
+					chartOptions: {
+						legend: {
+							align: 'center',
+							verticalAlign: 'bottom',
+							layout: 'horizontal'
+						},
+					}
+				}]
+			}
+		},
+			function (chart) {
+
+				GexStat.hidePreloader();
+
+				$('#GexStat').on('resize', function () {
+					GexStat.showPreloader('#GexStat');
+					chart.setSize($(this).find('#gexsContentWrapper').width(), $(this).find('#gexsContentWrapper').height(),
+						GexStat.hidePreloader())
+				});
+			}
+		);
+	},
+
+
 	ShowTabContent: (StatGroup, week) => {
 
 		switch (StatGroup)
@@ -397,6 +601,9 @@ let GexStat = {
 				break;
 			case 'Participation':
 				GexStat.ShowParticipation(week);
+				break;
+			case 'Course':
+				GexStat.ShowCourse();
 				break;
 		}
 
@@ -429,6 +636,7 @@ let GexStat = {
 		h.push('<div class="tabs dark-bg"><ul id="gexsTabs" class="horizontal">');
 		h.push(`<li${GexStat.CurrentStatGroup === 'Ranking' ? ' class="active"' : ''}><a class="toggle-statistic" data-value="Ranking"><span>${i18n('Boxes.GexStat.Ranking')}</span></a></li>`);
 		h.push(`<li${GexStat.CurrentStatGroup === 'Participation' ? ' class="active"' : ''}><a class="toggle-statistic" data-value="Participation"><span>${i18n('Boxes.GexStat.MemberParticipation')}</span></a></li>`);
+		h.push(`<li${GexStat.CurrentStatGroup === 'Course' ? ' class="active"' : ''}><a class="toggle-statistic" data-value="Course"><span>${i18n('Boxes.GexStat.Course')}</span></a></li>`);
 		h.push(`</ul></div>`);
 
 		if (gexweek && GexStat.GexWeeks && GexStat.GexWeeks.length)
@@ -501,9 +709,10 @@ let GexStat = {
 
 		let c = [];
 		let deleteAfterWeeks = [5, 10, 20, 30, 52, 0];
+		let showRounds = [3, 5, 10, 15, 20, 25, 30];
 		let Settings = GexStat.Settings;
 
-		c.push(`<p class="text-left">${i18n('Boxes.GexStat.DeleteDataOlderThan')} <select id="gexsDeleteOlderThan" name="deleteolderthan">`);
+		c.push(`<p class="text-left"><span class="settingtitle">${i18n('Boxes.GexStat.General')}</span>${i18n('Boxes.GexStat.DeleteDataOlderThan')} <select id="gexsDeleteOlderThan" name="deleteolderthan">`);
 		deleteAfterWeeks.forEach(weeks => {
 			let option = '';
 			if (weeks === 0) { option = i18n('Boxes.GexStat.Never'); }
@@ -513,6 +722,22 @@ let GexStat = {
 		});
 
 		c.push(`</select>`);
+		c.push(`<hr><p class="text-left"><span class="settingtitle">${i18n('Boxes.GexStat.Course')}</span>` +
+			`<input id="gmsShowAxisLabel" name="showaxislabel" value="1" type="checkbox" ${(Settings.showAxisLabel) ? ' checked="checked"' : ''} /> <label for="gmsShowAxisLabel">${i18n('Boxes.GexStat.ShowAxisLabel')}</label>` +
+			`</p>` +
+			`<p class="text-left"><input id="gmsShowChartPoints" name="showchartenpoints" value="1" type="checkbox" ${(Settings.chartSeries.includes('points')) ? ' checked="checked"' : ''} /> <label for="gmsShowChartPoints"><i>${i18n('Boxes.GexStat.Points')}</i></label><br />` +
+			`<input id="gmsShowChartEncounters" name="showchartencounters" value="1" type="checkbox" ${(Settings.chartSeries.includes('encounters')) ? ' checked="checked"' : ''} /> <label for="gmsShowChartEncounters"><i>${i18n('Boxes.GexStat.Encounters')}</i></label><br />` +
+			`<input id="gmsShowChartMember" name="showchartmember" value="1" type="checkbox" ${(Settings.chartSeries.includes('member')) ? ' checked="checked"' : ''} /> <label for="gmsShowChartMember"><i>${i18n('Boxes.GexStat.Member')}</i></label><br />` +
+			`<input id="gmsShowChartParticipants" name="showchartparticipants" value="1" type="checkbox" ${(Settings.chartSeries.includes('participants')) ? ' checked="checked"' : ''} /> <label for="gmsShowChartParticipants"><i>${i18n('Boxes.GexStat.Participant')}</i><br /></label>` +
+			`<input id="gmsShowChartRank" name="showchartrank" value="1" type="checkbox" ${(Settings.chartSeries.includes('rank')) ? ' checked="checked"' : ''} /> <label for="gmsShowChartRank"><i>${i18n('Boxes.GexStat.Rank')}</i></label>` +
+			`</p>`);
+		c.push(`<p class="text-left">${i18n('Boxes.GexStat.CompareLast')} <select id="gexsShowRoundLimit" name="showroundlimit">`);
+		showRounds.forEach(round => {
+			let option = round + ' ' + i18n('Boxes.GexStat.Rounds');
+			c.push(`<option value="${round}" ${Settings.showRoundLimit === round ? ' selected="selected"' : ''}>${option}</option>`);
+		});
+
+		c.push(`</select></p>`);
 		c.push(`<hr><p><button id="save-GexStat-settings" class="btn btn-default" style="width:100%" onclick="GexStat.SettingsSaveValues()">${i18n('Boxes.GexStat.Save')}</button></p>`);
 		$('#GexStatSettingsBox').html(c.join(''));
 
@@ -522,6 +747,7 @@ let GexStat = {
 	SettingsSaveValues: async () => {
 
 		let tmpDeleteOlder = parseInt($('#gexsDeleteOlderThan').val());
+		let showRoundLimit = parseInt($('#gexsShowRoundLimit').val());
 
 		if (GexStat.Settings.deleteOlderThan !== tmpDeleteOlder && tmpDeleteOlder > 0)
 		{
@@ -531,11 +757,28 @@ let GexStat = {
 		}
 
 		GexStat.Settings.deleteOlderThan = tmpDeleteOlder;
+		GexStat.Settings.showRoundLimit = showRoundLimit;
+		GexStat.Settings.showAxisLabel = $("#gmsShowAxisLabel").is(':checked') ? true : false;
+
+		let chartSeries = GexStat.Settings.chartSeries = [];
+
+		if ($("#gmsShowChartPoints").is(':checked')) { chartSeries.push('points'); }
+		if ($("#gmsShowChartEncounters").is(':checked')) { chartSeries.push('encounters'); }
+		if ($("#gmsShowChartMember").is(':checked')) { chartSeries.push('member'); }
+		if ($("#gmsShowChartParticipants").is(':checked')) { chartSeries.push('participants'); }
+		if ($("#gmsShowChartRank").is(':checked')) { chartSeries.push('rank'); }
+
+		// if nothing is selected, set series to default
+		if (!chartSeries.length) { chartSeries.push('points', 'encounters', 'member', 'participants', 'rank') }
 
 		localStorage.setItem('GexStatSettings', JSON.stringify(GexStat.Settings));
 
 		$(`#GexStatSettingsBox`).fadeToggle('fast', function () {
 			$(this).remove();
+			if (GexStat.Chart !== undefined)
+			{
+				GexStat.Chart.destroy();
+			}
 			GexStat.ShowTabContent(GexStat.CurrentStatGroup, GexStat.CurrentGexWeek);
 		});
 	},
@@ -551,7 +794,34 @@ let GexStat = {
 		}
 
 		GexStatStat.Settings.deleteOlderThan = (Settings.deleteOlderThan !== undefined) ? Settings.deleteOlderThan : GexStatStat.Settings.deleteOlderThan;
+		GexStatStat.Settings.showAxisLabel = (Settings.showAxisLabel !== undefined) ? Settings.showAxisLabel : GexStatStat.Settings.showAxisLabel;
+		GexStatStat.Settings.chartSeries = (Settings.chartSeries !== undefined && Settings.chartSeries.length) ? Settings.chartSeries : GexStatStat.Settings.chartSeries;
+		GexStatStat.Settings.showRoundLimit = (Settings.showRoundLimit !== undefined) ? Settings.showRoundLimit : GexStatStat.Settings.showRoundLimit;
 
+	},
+
+
+	GetChartSeries: async (data) => {
+
+		const chartSeries = {
+			points: { name: i18n('Boxes.GexStat.Points'), data: data.pointsData, color: '#DDDF0D', yAxis: 0, zIndex: 3 },
+			encounters: { gridLineWidth: 0, name: i18n('Boxes.GexStat.Encounters'), data: data.encounterData, color: '#7798BF', zIndex: 3, yAxis: 2 },
+			member: { type: 'column', name: i18n('Boxes.GexStat.Member'), data: data.allMemberData, color: '#55bf3b', pointPadding: 0.3, pointPlacement: -0.2, yAxis: 1, zIndex: 1 },
+			participants: { type: 'column', name: i18n('Boxes.GexStat.Participant'), data: data.activeMemberData, color: '#DF5353', pointPadding: 0.4, pointPlacement: -0.2, yAxis: 1, zIndex: 2 },
+			rank: { name: i18n('Boxes.GexStat.Rank'), data: data.rankData, color: '#d6dae0', yAxis: 3, marker: { symbol: 'square' }, dataLabels: { enabled: true }, zIndex: 2 }
+		}
+
+		let series = { data: [], yaxis: [] };
+
+		GexStat.Settings.chartSeries.forEach(v => {
+			series.data.push(chartSeries[v]);
+			if (!series.yaxis.includes(chartSeries[v].yAxis))
+			{
+				series.yaxis.push(chartSeries[v].yAxis);
+			}
+		});
+
+		return series;
 	},
 
 
