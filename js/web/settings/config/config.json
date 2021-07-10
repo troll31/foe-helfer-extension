@@ -121,7 +121,7 @@
 	},
 	{
 		"name": "EnableSound",
-		"status":  true,
+		"status": true,
 		"group": "Extension",
 		"sort": 6
 	},
