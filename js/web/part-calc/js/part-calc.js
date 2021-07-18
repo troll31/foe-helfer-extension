@@ -61,6 +61,9 @@ let Parts = {
 	RemainingOwnPart: null,
 
 	PowerLevelingMaxLevel: 999999,
+	PowerLevelingData: null,
+
+	PlaceAvailables: [],
 
 	DefaultButtons: [
 		80, 85, 90, 'ark'
@@ -74,6 +77,7 @@ let Parts = {
 		// Gibt es schon? Raus...
 		if ($('#OwnPartBox').length > 0) {
 			HTML.CloseOpenBox('OwnPartBox');
+			HTML.CloseOpenBox('PowerLevelingBox');
 
 			return;
 		}
@@ -198,7 +202,7 @@ let Parts = {
 
 		$('#OwnPartBox').on('click', '.button-powerleveling', function () {
 			Parts.PowerLevelingMaxLevel = 999999;
-			Parts.ShowPowerLeveling();
+			Parts.ShowPowerLeveling(false);
 		});
 	},
 
@@ -264,8 +268,9 @@ let Parts = {
 			EigenTotal, // Summe aller Eigenanteile
 			ExtTotal = 0, // Summe aller Externen Einzahlungen
 			EigenCounter = 0, // Eigenanteile Counter während Tabellenerstellung
-			Rest = Total, // Verbleibende FP: Counter während Berechnung
-			NonExts = [false, false, false, false, false]; // Wird auf true gesetz, wenn auf einem Platz noch eine (nicht externe) Zahlung einzuzahlen ist (wird in Spalte Einzahlen angezeigt)
+			Rest = Total; // Verbleibende FP: Counter während Berechnung
+
+		Parts.PlaceAvailables = [false, false, false, false, false]; // Wird auf true gesetz, wenn auf einem Platz noch eine (nicht externe) Zahlung einzuzahlen ist (wird in Spalte Einzahlen angezeigt)
 
 		Parts.Maezens = [];
 
@@ -414,7 +419,7 @@ let Parts = {
 					Dangers[i] -= Parts.Maezens[i] - Rest;
 				Parts.Maezens[i] = Rest;
             }
-            NonExts[i] = true;
+			Parts.PlaceAvailables[i] = true;
 			MaezenTotal += Parts.Maezens[i];
 			Rest -= Eigens[i] + Parts.Maezens[i];
         }
@@ -454,7 +459,7 @@ let Parts = {
 		for (let i = 0; i < 5; i++) {
 			if (Eigens[i] > 0) break;
 				
-			if (NonExts[i]) {
+			if (Parts.PlaceAvailables[i]) {
 				Parts.SafePlaces.push(i);
 			}
 		}
@@ -590,7 +595,7 @@ let Parts = {
             h.push('<tr>');
             h.push('<td>' + i18n('Boxes.OwnpartCalculator.Place') + ' ' + (i+1) + '</td>');
 
-            if (NonExts[i])
+			if (Parts.PlaceAvailables[i])
             {
 				h.push('<td class="text-center"><strong class="' + (PlayerID === ExtPlayerID ? '' : 'success') + '">' + (Parts.Maezens[i] > 0 ? HTML.Format(Parts.Maezens[i]) : '-') + '</strong >' + '</td>');
                 if (LeveltLG[i]) {
@@ -660,7 +665,7 @@ let Parts = {
         h.push('</tbody>');
         h.push('</table>');
 
-		Parts.BuildBackgroundBody(Parts.Maezens, Eigens, NonExts);
+		Parts.BuildBackgroundBody();
 
 		h.push(Calculator.GetRecurringQuestsLine(Parts.PlayInfoSound));
 
@@ -765,6 +770,7 @@ let Parts = {
 			'<label class="form-check-label game-cursor" for="options-fp"><input type="checkbox" class="form-check-input" id="options-fp" data-options="fp" ' + (localStorage.getItem('OwnPartIncludeFP' + KeyPart2) !== "false" ? 'checked' : '') + '> <span>' + i18n('Boxes.OwnpartCalculator.OptionsFP') + '</span></label>' +
 			'<label class="form-check-label game-cursor" for="options-descending"><input type="checkbox" class="form-check-input" id="options-descending" data-options="descending" ' + (localStorage.getItem('OwnPartDescending' + KeyPart2) !== "false" ? 'checked' : '') + '> <span>' + i18n('Boxes.OwnpartCalculator.OptionsDescending') + '</span></label>' +
 			'<label class="form-check-label game-cursor" for="options-levelup"><input type="checkbox" class="form-check-input" id="options-levelup" data-options="levelup"> <span>' + i18n('Boxes.OwnpartCalculator.OptionsLevelUp') + '</span></label>' +
+			'<label class="form-check-label game-cursor" for="options-ownpart"><input type="checkbox" class="form-check-input" id="options-ownpart" data-options="ownpart" ' + (localStorage.getItem('OwnPartOwnPart' + KeyPart2) === "true" ? 'checked' : '') + '> <span>' + i18n('Boxes.OwnpartCalculator.OptionsOwnPart') + '</span></label>' +
 			'</div>';
 
 		h.push(Options)
@@ -777,9 +783,9 @@ let Parts = {
 			'<label class="form-check-label game-cursor" for="chain-p3"><input type="checkbox" class="form-check-input" id="chain-p3" data-place="3" ' + (Parts.IsNextLevel || Parts.SafePlaces.includes(2) ? 'checked' : '') + '> <span>' + i18n('Boxes.OwnpartCalculator.Place') + ' 3</span></label>' +
 			'<label class="form-check-label game-cursor" for="chain-p4"><input type="checkbox" class="form-check-input" id="chain-p4" data-place="4" ' + (Parts.IsNextLevel || Parts.SafePlaces.includes(3) ? 'checked' : '') + '> <span>' + i18n('Boxes.OwnpartCalculator.Place') + ' 4</span></label>' +
 			'<label class="form-check-label game-cursor" for="chain-p5"><input type="checkbox" class="form-check-input" id="chain-p5" data-place="5" ' + (Parts.IsNextLevel || Parts.SafePlaces.includes(4) ? 'checked' : '') + '> <span>' + i18n('Boxes.OwnpartCalculator.Place') + ' 5</span></label>' +
-			'<label class="form-check-label game-cursor" for="chain-auto"><input type="checkbox" class="form-check-input" id="chain-auto" data-place="auto" ' + (Parts.IsNextLevel ? '' : 'checked') + '> <span>' + i18n('Boxes.OwnpartCalculator.Auto') + '</span></label>' +
 			'<label class="form-check-label game-cursor" for="chain-all"><input type="checkbox" class="form-check-input" id="chain-all" data-place="all" ' + (Parts.IsNextLevel ? 'checked' : '') + '> <span>' + i18n('Boxes.OwnpartCalculator.All') + '</span></label>' +
-			'<label class="form-check-label game-cursor" for="chain-all-withempty"><input type="checkbox" class="form-check-input" id="chain-all-withempty" data-place="all-withempty"> <span>' + i18n('Boxes.OwnpartCalculator.AllWithEmpty') + '</span></label>' +
+			'<label class="form-check-label game-cursor" for="chain-auto"><input type="checkbox" class="form-check-input" id="chain-auto" data-place="auto" ' + (Parts.IsNextLevel ? '' : 'checked') + '> <span>' + i18n('Boxes.OwnpartCalculator.Auto') + '</span></label>' +
+			'<label class="form-check-label-wide game-cursor" for="chain-auto-unsafe"><input type="checkbox" class="form-check-input" id="chain-auto-unsafe" data-place="auto-unsafe"> <span>' + i18n('Boxes.OwnpartCalculator.AutoWithUnsafe') + '</span></label>' +
 		'</div>';
 
 		h.push(cb);
@@ -840,37 +846,37 @@ let Parts = {
 			let PlaceName = $(this).data('place');
 
 			if (PlaceName) {
-				if (PlaceName === 'auto') { //auto: all und P1-5 deaktivieren, auto aktivieren
-					$('#chain-auto').prop('checked', true);
-					$('#chain-all').prop('checked', false);
-					$('#chain-all-withempty').prop('checked', false);
-
-					for (let i = 0; i < 5; i++) {
-						$('#chain-p' + (i + 1)).prop('checked', Parts.SafePlaces.includes(i));
-					}
-				}
-				else if (PlaceName === 'all') { //all: auto und P1-5 deaktivieren, all aktivieren
-					$('#chain-auto').prop('checked', false);
+				if (PlaceName === 'all') { //all: auto deaktivieren, P1-5 aktivieren
 					$('#chain-all').prop('checked', true);
-					$('#chain-all-withempty').prop('checked', false);
+					$('#chain-auto').prop('checked', false);
+					$('#chain-auto-unsafe').prop('checked', false);
 
 					for (let i = 0; i < 5; i++) {
 						$('#chain-p' + (i + 1)).prop('checked', true);
 					}
 				}
-				else if (PlaceName === 'all-withempty') { //all: auto und P1-5 deaktivieren, all aktivieren
-						$('#chain-auto').prop('checked', false);
-						$('#chain-all').prop('checked', false);
-						$('#chain-all-withempty').prop('checked', true);
-
-						for (let i = 0; i < 5; i++) {
-							$('#chain-p' + (i + 1)).prop('checked', true);
-						}
-					}
-				else { //P1-5: auto und all deaktivieren
-					$('#chain-auto').prop('checked', false);
+				else if (PlaceName === 'auto') { //auto: all/auto-unsafe deaktivieren, P1-P5 ermitteln
 					$('#chain-all').prop('checked', false);
-					$('#chain-all-withempty').prop('checked', false);
+					$('#chain-auto').prop('checked', true);
+					$('#chain-auto-unsafe').prop('checked', false);
+					
+					for (let i = 0; i < 5; i++) {
+						$('#chain-p' + (i + 1)).prop('checked', Parts.SafePlaces.includes(i));
+					}
+				}
+				else if (PlaceName === 'auto-unsafe') { //auto-unsafe: all/auto deaktivieren, P1-5 ermitteln
+					$('#chain-all').prop('checked', false);
+					$('#chain-auto').prop('checked', false);
+					$('#chain-auto-unsafe').prop('checked', true);
+
+					for (let i = 0; i < 5; i++) {
+						$('#chain-p' + (i + 1)).prop('checked', Parts.PlaceAvailables[i]);
+					}
+				}
+				else { //P1-5: auto und all deaktivieren
+					$('#chain-all').prop('checked', false);
+					$('#chain-auto').prop('checked', false);
+					$('#chain-auto-unsafe').prop('checked', false);
 				}
 			}
 
@@ -893,6 +899,9 @@ let Parts = {
 				}
 				else if (OptionsName === 'descending') {
 					localStorage.setItem('OwnPartDescending' + StoragePreamble, $('#options-descending').prop('checked'));
+				}
+				else if (OptionsName === 'ownpart') {
+					localStorage.setItem('OwnPartOwnPart' + StoragePreamble, $('#options-ownpart').prop('checked'));
 				}
 			}
 
@@ -971,7 +980,7 @@ let Parts = {
     },
 
 
-	RefreshCopyString: () => {
+	BuildCopyString: (Places, Maezens, Level, OwnPart, PlaceAll, PlaceAuto, PlaceAutoUnsafe) => {
 		let PlayerName = $('#player-name').val(),
 			BuildingName = $('#build-name').val();
 
@@ -981,10 +990,52 @@ let Parts = {
 			IncludeFP = $('#options-fp').prop('checked'),
 			Descending = $('#options-descending').prop('checked'),
 			LevelUp = $('#options-levelup').prop('checked');
+			IncludeOwnPart = $('#options-ownpart').prop('checked');
+		
+		if (Descending) Places.reverse();
 
-		let PlaceAuto = $('#chain-auto').prop('checked'),
-			PlaceAll = $('#chain-all').prop('checked'),
-			PlaceAllWithEmpty = $('#chain-all-withempty').prop('checked'),
+		let Ret = [];
+		if (IncludePlayerName) Ret.push(PlayerName);
+
+		if (IncludeBuildingName) Ret.push(BuildingName);
+
+		if (LevelUp) Ret.push(i18n('Boxes.OwnpartCalculator.OptionsLevelUp'));
+
+		if (IncludeLevel) Ret.push(Level + '->' + (Level + 1));
+
+		if (Places.length > 0) {
+			for (let i = 0; i < Places.length; i++) {
+				let Place = Places[i];
+
+				if(PlaceAll && Maezens[Place] === 0){
+					continue;
+				}
+
+				if (IncludeFP) {
+					Ret.push('P' + (Place + 1) + '(' + Maezens[Place] + ')');
+				}
+				else {
+					Ret.push('P' + (Place + 1));
+				}
+			}
+		}
+		else if (PlaceAuto) {
+			Ret.push(i18n('Boxes.OwnpartCalculator.NoPlaceSafe'));
+		}
+		else if (PlaceAutoUnsafe) {
+			Ret.push(i18n('Boxes.OwnpartCalculator.NoPlaceAvailable'));
+		}
+		
+		if (IncludeOwnPart) Ret.push(i18n('Boxes.OwnpartCalculator.OwnPartShort') + '(' + OwnPart + ')');
+
+		return Ret.join(' ');
+	},
+
+
+	RefreshCopyString: () => {
+		let PlaceAll = $('#chain-all').prop('checked'),
+			PlaceAuto = $('#chain-auto').prop('checked'),
+			PlaceAutoUnsafe = $('#chain-auto-unsafe').prop('checked'),			
 			Ps = [
 				$('#chain-p1').prop('checked'),
 				$('#chain-p2').prop('checked'),
@@ -999,7 +1050,12 @@ let Parts = {
 				Places.push(Parts.SafePlaces[i]);
 			}
 		}
-		else if (PlaceAll || PlaceAllWithEmpty) {
+		else if (PlaceAutoUnsafe) {
+			for (let i = 0; i < Parts.PlaceAvailables.length; i++) {
+				if(Parts.PlaceAvailables[i]) Places.push(i);
+			}
+        }
+		else if (PlaceAll) {
 			for (let i = 0; i < 5; i++) {
 				Places.push(i);
 			}
@@ -1010,38 +1066,8 @@ let Parts = {
             }
 		}
 
-		if (Descending) Places.reverse();
+		let CopyString = Parts.BuildCopyString(Places, Parts.Maezens, Parts.Level, Parts.RemainingOwnPart, PlaceAll, PlaceAuto, PlaceAutoUnsafe);
 
-		let Ret = [];
-		if (IncludePlayerName) Ret.push(PlayerName);
-
-		if (IncludeBuildingName) Ret.push(BuildingName);
-
-		if (LevelUp) Ret.push(i18n('Boxes.OwnpartCalculator.OptionsLevelUp'));
-
-		if (IncludeLevel) Ret.push(Parts.Level + '->' + (Parts.Level + 1));
-
-		if (Places.length > 0) {
-			for (let i = 0; i < Places.length; i++) {
-				let Place = Places[i];
-
-				if(PlaceAll && Parts.Maezens[Place] === 0){
-					continue;
-				}
-
-				if (IncludeFP) {
-					Ret.push('P' + (Place + 1) + '(' + Parts.Maezens[Place] + ')');
-				}
-				else {
-					Ret.push('P' + (Place + 1));
-				}
-			}
-		}
-		else if (PlaceAuto) {
-			Ret.push(i18n('Boxes.OwnpartCalculator.NoPlaceSafe'));
-        }
-
-		let CopyString = Ret.join(' ');
 		$('#copystring').val(CopyString);
 
 		return CopyString;
@@ -1082,12 +1108,12 @@ let Parts = {
 	},
 
 
-	ShowPowerLeveling: () => {
-		Parts.BuildBoxPowerLeveling();
+	ShowPowerLeveling: (event) => {
+		Parts.BuildBoxPowerLeveling(event);
 	},
 
-	
-	BuildBoxPowerLeveling: () => {
+
+	BuildBoxPowerLeveling: (event) => {
 		// Gibt es schon? Raus...
 		if ($('#PowerLevelingBox').length === 0) {
 			// Box in den DOM
@@ -1121,6 +1147,17 @@ let Parts = {
 					Parts.UpdateTableBodyPowerLeveling();
 				}
 			});
+			box.on('click', '.button-powerlevel-copy', function () {
+				let gb_level = parseInt($(this).parent().find(".hidden-text").html());
+
+				let copyParts = Parts.BuildCopyString([0, 1, 2, 3, 4], Parts.PowerLevelingData.Places[gb_level], gb_level, Parts.PowerLevelingData.EigenNettos[gb_level], true, false, false);
+				helper.str.copyToClipboardLegacy(copyParts);
+			});
+		}
+		else if (!event)
+		{
+			HTML.CloseOpenBox('PowerLevelingBox');
+			return;
 		}
 
 		// Body zusammen fummeln
@@ -1197,7 +1234,7 @@ let Parts = {
 	},
 
 
-	CalcTableBodyPowerLeveling: (h, data) => {
+	CalcTableBodyPowerLeveling: (h) => {
 		const {
 			HasDoubleCollection,
 			Places,
@@ -1206,7 +1243,7 @@ let Parts = {
 			EigenBruttos,
 			DoubleCollections,
 			EigenNettos
-		} = data;
+		} = Parts.PowerLevelingData;
 
 		for (let i = MinLevel; i < MaxLevel; i++) {
 			h.push('<tr>');
@@ -1221,44 +1258,45 @@ let Parts = {
 				h.push('<td class="no-select">' + HTML.Format(MainParser.round(DoubleCollections[i])) + '</td>');
 			}
 			h.push('<td><strong class="info no-select">' + HTML.Format(MainParser.round(EigenNettos[i])) + '</strong></td>');
+			h.push('<td><span class="hidden-text">' + i + '</span><span class="btn-default button-powerlevel-copy">' + i18n('Boxes.PowerLeveling.CopyValues') + '</span></td>');
 			h.push('</tr>');
-        }
+		}
 	},
 
 
 	UpdateTableBodyPowerLeveling: () => {
 		const tableBody = document.getElementById('PowerLevelingBoxTableBody');
 		if (tableBody) {
-			const data = Parts.CalcBodyPowerLevelingData();
+			Parts.PowerLevelingData = Parts.CalcBodyPowerLevelingData();
 			/** @type {string[]} */
 			const h = [];
 			
-			Parts.CalcTableBodyPowerLeveling(h, data);
+			Parts.CalcTableBodyPowerLeveling(h);
 
 			tableBody.innerHTML = h.join('');
 
 			const maxlevel = /** @type {HTMLInputElement} */(document.getElementById('maxlevel'));
-			if (maxlevel.value != ''+data.MaxLevel) {
-				maxlevel.value = ''+data.MaxLevel;
+			if (maxlevel.value != '' + Parts.PowerLevelingData.MaxLevel) {
+				maxlevel.value = '' + Parts.PowerLevelingData.MaxLevel;
 			}
-			Parts.PowerLevelingMaxLevel = data.MaxLevel;
+			Parts.PowerLevelingMaxLevel = Parts.PowerLevelingData.MaxLevel;
 
 			const ownPartSum = /** @type {HTMLElement} */(document.getElementById('PowerLevelingBoxOwnPartSum'));
-			ownPartSum.innerText = HTML.Format(MainParser.round(data.OwnPartSum));
+			ownPartSum.innerText = HTML.Format(MainParser.round(Parts.PowerLevelingData.OwnPartSum));
 		}
 
 	},
 
 
 	CalcBodyPowerLeveling: () => {
-		const data = Parts.CalcBodyPowerLevelingData();
+		Parts.PowerLevelingData = Parts.CalcBodyPowerLevelingData();
 
 		const {
 			HasDoubleCollection,
 			CityEntity,
 			OwnPartSum,
 			MaxLevel,
-		} = data;
+		} = Parts.PowerLevelingData;
 
 		let h = [];
 
@@ -1287,11 +1325,12 @@ let Parts = {
 			h.push('<th>' + i18n('Boxes.PowerLeveling.DoubleCollection') + '</th>');
 		}
 		h.push('<th>' + i18n('Boxes.PowerLeveling.OwnPartNetto') + '</th>');
+		h.push('<th></th>');
 		h.push('</tr>');
 		h.push('</thead>');
 
 		h.push('<tbody id="PowerLevelingBoxTableBody">');
-		Parts.CalcTableBodyPowerLeveling(h, data);
+		Parts.CalcTableBodyPowerLeveling(h);
 		h.push('</tbody>');
 
 		h.push('</table>');
@@ -1333,7 +1372,7 @@ let Parts = {
 		});
 
 		// new own button
-		c.push(nV);
+		c.push(nV);danger
 
 		// save button
 		c.push(`<hr><p><button id="save-calculator-settings" class="btn btn-default" style="width:100%" onclick="Parts.SettingsSaveValues()">${i18n('Boxes.Calculator.Settings.Save')}</button></p>`);

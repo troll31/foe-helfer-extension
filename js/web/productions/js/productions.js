@@ -117,6 +117,8 @@ let Productions = {
 		let PopulationSum = 0,
 			HappinessSum = 0;
 
+		Productions.Boosts = [];
+
 		for(let i in d)
 		{
 			if (!d.hasOwnProperty(i)) continue;
@@ -294,7 +296,7 @@ let Productions = {
 
 				if (Ability['__class__'] === 'DoubleProductionWhenMotivatedAbility') DoubleProductionWhenMotivated = true;
 
-				if (d['state']['is_motivated'] === false && Ability['additionalResources']) {
+				if (d['state']['is_motivated'] === false && Ability['additionalResources'] && Ability['__class__'] === 'AddResourcesWhenMotivatedAbility') {
 					if (Ability['additionalResources']['AllAge'] && Ability['additionalResources']['AllAge']['resources']) {
 						let NewResources = Ability['additionalResources']['AllAge']['resources'];
 						for (let Resource in NewResources) {
@@ -645,8 +647,11 @@ let Productions = {
 						rowA.push('<td data-text="' + buildings[i]['name'].cleanup() + '">' + buildings[i]['name'] + '</td>');
 						rowA.push('<td class="text-right is-number" data-number="' + MotivatedProductCount + '">' + HTML.Format(ProductCount) + (ProductCount !== MotivatedProductCount ? '/' + HTML.Format(MotivatedProductCount) : '') + '</td>');
 						
-						let size = sizes[buildings[i]['eid']] | 0,
-							SizeToolTip = sizetooltips[buildings[i]['eid']],
+						let size = sizes[buildings[i]['eid']];
+
+						if (!size) size = 0;
+
+						let SizeToolTip = sizetooltips[buildings[i]['eid']],
 							efficiency = (MotivatedProductCount / size);
 
 						let EfficiencyString;
@@ -672,7 +677,7 @@ let Productions = {
 							EfficiencyString = 'N/A';
 						}
 					
-						rowA.push('<td class="text-right is-number addon-info" data-number="' + size + '" title="' + HTML.i18nTooltip(SizeToolTip) + '">' + size + '</td>');
+						rowA.push('<td class="text-right is-number addon-info" data-number="' + size + '" title="' + HTML.i18nTooltip(SizeToolTip) + '">' + HTML.Format(size) + '</td>');
 						rowA.push('<td class="text-right is-number addon-info" data-number="' + efficiency + '">' + EfficiencyString + '</td>');
 						rowA.push('<td class="addon-info is-number" data-number="' + buildings[i]['era'] + '">' + i18n('Eras.' + buildings[i]['era']) + '</td>');
 						
@@ -1470,6 +1475,12 @@ let Productions = {
 				Productions.ShowFunction(IDs);
 			});
 
+			$('#ProductionsRating').on('click', '.toggle-tab', function () {
+				Productions.RatingCurrentTab = $(this).data('value');
+
+				Productions.CalcRatingBody();
+			});
+
 			for (let i = 0; i < Productions.RatingTypes.length; i++) {
 				let Type = Productions.RatingTypes[i];
 
@@ -1492,12 +1503,6 @@ let Productions = {
 					Productions.RatingProdPerTiles[Type] = parseFloat($('#ProdPerTile-' + Type).val());
 					if (isNaN(Productions.RatingProdPerTiles[Type])) Productions.RatingProdPerTiles[Type] = 0;
 					localStorage.setItem('ProductionRatingProdPerTiles', JSON.stringify(Productions.RatingProdPerTiles));
-					Productions.CalcRatingBody();
-				});
-
-				$('#ProductionsRating').on('click', '.toggle-tab', function () {
-					Productions.RatingCurrentTab = $(this).data('value');
-
 					Productions.CalcRatingBody();
 				});
 			}

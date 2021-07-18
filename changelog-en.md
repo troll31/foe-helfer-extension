@@ -2,23 +2,82 @@
 
 ##### 2.5.9
 
-**Neu**
-- GEX results
-	- The results of the guild expeditions are saved chronologically each week (ranking and member participation). Visiting the participant overview and opening the guild ranking list is necessary for updating the data.
-	- graphical representation of the progress of the guild expeditions (points, encounters, members (total), participants, rank).
-	- Export of the results (ranking and member participation) to CSV / JSON
-- Export of settings and data
-	- The entire configuration of the FOE Helper as well as all locally saved databases can now be saved in the settings under Import/Export and restored on another PC or browser
+**New**
+- GEX Results
+    - the results of the guild expeditions are stored chronologically each week (ranking and member participation). Visiting the participation overview and opening the guild ranking list is necessary to update the data.
+    - Graphical representation of the progress of the guild expeditions (points, encounters, members (total), participants, rank)
+    - Export of the results (ranking list and member participation) to CSV / JSON
 
-**Update**
-- Guild Member Statistics
-	- [#2033](https://github.com/mainIine/foe-helfer-extension/issues/2033) GB List of all guild members
-	Filterable list of the GB of all guild members with the current level, unlocked levels, invested FP and required FP to level up.
+- Export of settings and data
+    - The entire configuration of the FOE Helper as well as all locally saved databases can now be saved in the settings under Import/Export and restored on another PC or browser.
+
+- Building Efficiency Rating
+    - Tool to find buildings that are no longer efficient. The player determines which yield per field he wants. The tool indicates which buildings achieve this yield and which do not.
+
+- Links to the player profile on scoredb.io
+    - [#149](https://github.com/mainIine/foe-helfer-extension/issues/149) Player names in Foe Helper are replaced by links to the player's profile on the scoredb.io site (can be activated or deactivated in the settings menu)
+
+**Update
+- Guild members overview
+    - [#2033](https://github.com/mainIine/foe-helfer-extension/issues/2033) LG list of all guild members
+      Filterable list of the LG of all guild members with the current level, unlocked levels, invested FP and required FP to level up.
+
+- LG Investments
+    - [#1550](https://github.com/mainIine/foe-helfer-extension/issues/1550) Option to consider bonuses for the attacking army.
+    - Support for relic temple and flying island.
+
+- Production overview:
+    - [#2060](https://github.com/mainIine/foe-helfer-extension/issues/2060) It is now shown for all resources like forgen points additionally the maximum production when everything is motivated/polished
+
+- Own share calculator:
+    - [#2045](https://github.com/mainIine/foe-helfer-extension/issues/2045) The buttons "Copy" and "Remember" are now also available in the main window if a place is safe. The default settings for copying are used.
+    - Display which legendary buildings have already been bookmarked
+    - After memorising a building, the current list is now also copied to the clipboard.
+    - [#2046](https://github.com/mainIine/foe-helfer-extension/issues/2046) Places that do not yield FP as a patron reward are suggested with 1FP.
+    - In the copy box, the option "All + empty" has been replaced with the option "Auto + not safe". This copies all places that are not yet occupied
+
+- Misc:
+    - [#1965](https://github.com/mainIine/foe-helfer-extension/issues/1965) Added global setting to disable all sound effects in Foe Helper.
+    - [#2064](https://github.com/mainIine/foe-helfer-extension/issues/2064) For long tables the header was fixed when scrolling down now
 
 **BugFix**
--  Investment overview:
-	- [#2035](https://github.com/mainIine/foe-helfer-extension/issues/2035) Profit/medals/blueprints were not updated immediately after leveling your own ark.
-	- Hidden GBs became visible again after levelling the own ark although no investment had taken place.
+- Guild members overview
+    - [#2085](https://github.com/mainIine/foe-helfer-extension/issues/2085) Wrong display of age for guild goods producing buildings
+    - [#2086](https://github.com/mainIine/foe-helfer-extension/issues/2086) Guild goods/power producing buildings were sometimes not displayed in the detail view
+
+- Own share calculator:
+    - [#2052](https://github.com/mainIine/foe-helfer-extension/issues/2052) Multiple memorisation of the same legendary building could result in duplicate lines
+    - [#2075](https://github.com/mainIine/foe-helfer-extension/issues/2075) Depositing into legendary buildings that have already been leveled could display invalid values
+
+- FP collections:
+    - [#2089](https://github.com/mainIine/foe-helfer-extension/issues/2089) In the date selection dialogue the year 1912 was selected if the language of the foe helper was set to Dutch
+
+- Investment overview:
+    - [#2035](https://github.com/mainIine/foe-helfer-extension/issues/2035) Winnings/medals/blueprints were not updated immediately after leveling your own ark.
+    - Hidden LG were shown again after leveling the own ark although no investment took place.
+
+- Production overview:
+    - [#2062](https://github.com/mainIine/foe-helfer-extension/issues/2062) Goods production: Added warning message if Venus outpost has not been visited yet (like Mars and Asteroids).
+    - [#2058](https://github.com/mainIine/foe-helfer-extension/issues/2058) Invalid values could be displayed when upgrading roads.
+    - [#2090](https://github.com/mainIine/foe-helfer-extension/issues/2090) Changed rounding of size values to 1 digit, as the value also contains the average road demand.
+
+- LG investments:
+    - [#2029](https://github.com/mainIine/foe-helfer-extension/issues/2029) Consider goods could not be permanently deactivated
+
+- Market filter:
+    - [#2084](https://github.com/mainIine/foe-helfer-extension/issues/2084) Corrected wrong information in the "Page" column of the "Advantageous" filter for own offers
+
+- Infobox:
+    - [#1907](https://github.com/mainIine/foe-helfer-extension/issues/1907) [#2065](https://github.com/mainIine/foe-helfer-extension/issues/2065) Sometimes wrong FP values could be displayed in the infobox when levelling LGs.
+
+- CityMap:
+    - [#1986](https://github.com/mainIine/foe-helfer-extension/issues/1986) Display of total and free area for foreign cities hidden, because the unlocked extensions are only known for the own city
+
+- Events:
+    - [#1991](https://github.com/mainIine/foe-helfer-extension/issues/1991) Added shards of the flying island
+
+- Outposts:
+    - [#2067](https://github.com/mainIine/foe-helfer-extension/issues/2067) Calculation of the required loot for Egyptians faulty
 
 ---
 
